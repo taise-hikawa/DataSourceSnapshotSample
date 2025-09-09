@@ -1,37 +1,39 @@
 import UIKit
 import SwiftUI
 
-// MARK: - V2 Models (Section with items property)
+// MARK: - V4 Models (Section with items property, hash and equality both exclude items)
 
-struct SectionV2: Hashable {
+struct SectionV4: Hashable {
     let id: String
     let title: String
     var items: [Item]
     
-    // Hashableの実装（itemsを含める）
+    // Hashableの実装（itemsを含めない）
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(title)
-        hasher.combine(items)
+        // items は hash に含めない
     }
     
-    static func == (lhs: SectionV2, rhs: SectionV2) -> Bool {
-        return lhs.id == rhs.id && lhs.title == rhs.title && lhs.items == rhs.items
+    static func == (lhs: SectionV4, rhs: SectionV4) -> Bool {
+        // 等価性からも items を除外
+        return lhs.id == rhs.id && lhs.title == rhs.title
+        // items は等価性比較に含めない
     }
 }
 
-// MARK: - CollectionViewWrapperV2
+// MARK: - CollectionViewWrapperV4
 
-class CollectionViewWrapperV2: UIViewController {
+class CollectionViewWrapperV4: UIViewController {
     
     // MARK: - Properties
     
     private var collectionView: UICollectionView!
-    private var dataSource: UICollectionViewDiffableDataSource<SectionV2, Item>!
+    private var dataSource: UICollectionViewDiffableDataSource<SectionV4, Item>!
     private var itemCounter = 0
     
     // セクションデータを保持
-    private var sections: [SectionV2] = []
+    private var sections: [SectionV4] = []
     
     private let colors = ColorPalette.colors
     
@@ -54,13 +56,13 @@ class CollectionViewWrapperV2: UIViewController {
         collectionView.backgroundColor = .systemBackground
         
         collectionView.register(ItemCell.self, forCellWithReuseIdentifier: "ItemCell")
-        collectionView.register(SectionHeaderV2.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeaderV2")
+        collectionView.register(SectionHeaderV4.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeaderV4")
         
         view.addSubview(collectionView)
     }
     
     private func setupDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<SectionV2, Item>(
+        dataSource = UICollectionViewDiffableDataSource<SectionV4, Item>(
             collectionView: collectionView
         ) { collectionView, indexPath, item in
             let cell = collectionView.dequeueReusableCell(
@@ -77,9 +79,9 @@ class CollectionViewWrapperV2: UIViewController {
             
             let header = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
-                withReuseIdentifier: "SectionHeaderV2",
+                withReuseIdentifier: "SectionHeaderV4",
                 for: indexPath
-            ) as! SectionHeaderV2
+            ) as! SectionHeaderV4
             
             let section = self.sections[indexPath.section]
             header.configure(with: section, delegate: self)
@@ -90,25 +92,25 @@ class CollectionViewWrapperV2: UIViewController {
     private func setupInitialData() {
         // 初期セクションデータを作成
         sections = [
-            SectionV2(
+            SectionV4(
                 id: "section1",
-                title: "セクション1 (V2)",
+                title: "セクション1 (V4)",
                 items: [
                     Item(id: "1-1", title: "アイテム1-1", color: colors[0]),
                     Item(id: "1-2", title: "アイテム1-2", color: colors[1])
                 ]
             ),
-            SectionV2(
+            SectionV4(
                 id: "section2",
-                title: "セクション2 (V2)",
+                title: "セクション2 (V4)",
                 items: [
                     Item(id: "2-1", title: "アイテム2-1", color: colors[2]),
                     Item(id: "2-2", title: "アイテム2-2", color: colors[3])
                 ]
             ),
-            SectionV2(
+            SectionV4(
                 id: "section3",
-                title: "セクション3 (V2)",
+                title: "セクション3 (V4)",
                 items: []
             )
         ]
@@ -117,8 +119,8 @@ class CollectionViewWrapperV2: UIViewController {
     }
     
     private func applySnapshot() {
-        print("🔄 [V2] Applying snapshot...")
-        var snapshot = NSDiffableDataSourceSnapshot<SectionV2, Item>()
+        print("🔄 [V4] Applying snapshot...")
+        var snapshot = NSDiffableDataSourceSnapshot<SectionV4, Item>()
         
         // セクションを追加
         snapshot.appendSections(sections)
@@ -128,7 +130,7 @@ class CollectionViewWrapperV2: UIViewController {
             snapshot.appendItems(section.items, toSection: section)
         }
         
-        print("📊 [V2] Snapshot state:")
+        print("📊 [V4] Snapshot state:")
         print("   Sections: \(snapshot.sectionIdentifiers.map { $0.title })")
         for section in snapshot.sectionIdentifiers {
             print("   \(section.title): \(snapshot.itemIdentifiers(inSection: section).map { $0.id })")
@@ -140,9 +142,9 @@ class CollectionViewWrapperV2: UIViewController {
 
 // MARK: - SectionHeaderDelegate
 
-extension CollectionViewWrapperV2: SectionHeaderDelegate {
+extension CollectionViewWrapperV4: SectionHeaderDelegate {
     func addItemToSection(sectionId: String) {
-        print("🟢 [V2] セクションにアイテムを追加: \(sectionId)")
+        print("🟢 [V4] セクションにアイテムを追加: \(sectionId)")
         
         // セクションを見つけて更新
         guard let sectionIndex = sections.firstIndex(where: { $0.id == sectionId }) else {
@@ -165,7 +167,7 @@ extension CollectionViewWrapperV2: SectionHeaderDelegate {
     }
     
     func removeItemFromSection(sectionId: String) {
-        print("🔴 [V2] セクションからアイテムを削除: \(sectionId)")
+        print("🔴 [V4] セクションからアイテムを削除: \(sectionId)")
         
         guard let sectionIndex = sections.firstIndex(where: { $0.id == sectionId }) else {
             return
@@ -178,12 +180,12 @@ extension CollectionViewWrapperV2: SectionHeaderDelegate {
     }
 }
 
-// MARK: - SectionHeaderV2
+// MARK: - SectionHeaderV4
 
-class SectionHeaderV2: SectionHeaderBase {
-    private var section: SectionV2?
+class SectionHeaderV4: SectionHeaderBase {
+    private var section: SectionV4?
     
-    func configure(with section: SectionV2, delegate: SectionHeaderDelegate) {
+    func configure(with section: SectionV4, delegate: SectionHeaderDelegate) {
         self.section = section
         self.delegate = delegate
         self.sectionId = section.id
@@ -193,10 +195,10 @@ class SectionHeaderV2: SectionHeaderBase {
 
 // MARK: - UIViewRepresentable
 
-struct CollectionViewWrapperV2Representable: UIViewControllerRepresentable {
+struct CollectionViewWrapperV4Representable: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UINavigationController {
-        let wrapper = CollectionViewWrapperV2()
-        wrapper.title = "V2 - Items付き"
+        let wrapper = CollectionViewWrapperV4()
+        wrapper.title = "V4 - Hash&==除外"
         return UINavigationController(rootViewController: wrapper)
     }
     
