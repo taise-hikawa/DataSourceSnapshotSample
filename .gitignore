@@ -1,0 +1,37 @@
+# Xcode
+.DS_Store
+*.swp
+*.lock
+profile
+DerivedData/
+.build/
+.swiftpm/xcode
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj
+
+# Playground
+timeline.xctimeline
+playground.xcworkspace
+
+# Xcode Playground
+*.playground
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+iOSInjectionProject/
