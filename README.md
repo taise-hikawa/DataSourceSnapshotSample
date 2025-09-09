@@ -76,6 +76,8 @@ struct SectionV4: Hashable {
 
 **`NSDiffableDataSource`はhash値だけでなく、等価性演算子（`==`）も差分検知に使用している**
 
+また、実装設計においては、セクションのentity内でアイテムのentityをプロパティとして持つべきではない。セクションとアイテムは独立して管理し、関心の分離を保つことが推奨される。
+
 ## 参考文献
 
 1. **[Can UITableViewDiffableDataSource detect an item changed?](https://stackoverflow.com/questions/61073340/can-uitableviewdiffabledatasource-detect-an-item-changed)**
