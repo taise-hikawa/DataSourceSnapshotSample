@@ -24,7 +24,7 @@ class CollectionViewWrapper: UIViewController {
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
     private var itemCounter = 0
-    private let colors: [UIColor] = [.systemBlue, .systemGreen, .systemRed, .systemOrange, .systemPurple, .systemYellow, .systemPink, .systemTeal, .systemIndigo, .systemBrown]
+    private let colors = ColorPalette.colors
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,12 +39,7 @@ class CollectionViewWrapper: UIViewController {
     }
     
     private func setupCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: 100, height: 100)
-        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        layout.minimumLineSpacing = 10
-        layout.minimumInteritemSpacing = 10
-        layout.headerReferenceSize = CGSize(width: 0, height: 50)
+        let layout = UICollectionViewFlowLayout.createStandardLayout()
         
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -185,122 +180,9 @@ extension CollectionViewWrapper: SectionHeaderDelegate {
     
 }
 
-protocol SectionHeaderDelegate: AnyObject {
-    func addItemToSection(sectionId: String)
-    func removeItemFromSection(sectionId: String)
-}
+// MARK: - SectionHeader
 
-class ItemCell: UICollectionViewCell {
-    private let titleLabel = UILabel()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupCell()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupCell() {
-        titleLabel.textAlignment = .center
-        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        titleLabel.numberOfLines = 0
-        titleLabel.textColor = .white
-        
-        contentView.addSubview(titleLabel)
-        contentView.layer.cornerRadius = 8
-        
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 4),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -4)
-        ])
-    }
-    
-    func configure(with item: Item) {
-        titleLabel.text = item.title
-        contentView.backgroundColor = item.color
-        
-        let timeFormatter = DateFormatter()
-        timeFormatter.dateFormat = "HH:mm:ss"
-        print("🎨 セル描画: \(item.title) (作成時刻: \(timeFormatter.string(from: item.createdAt)))")
-    }
-}
-
-class SectionHeader: UICollectionReusableView {
-    private let titleLabel = UILabel()
-    private let addButton = UIButton(type: .system)
-    private let removeButton = UIButton(type: .system)
-    private let stackView = UIStackView()
-    
-    private var sectionId: String = ""
-    private weak var delegate: SectionHeaderDelegate?
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupHeader()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupHeader() {
-        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        titleLabel.textColor = .label
-        
-        addButton.setTitle("➕", for: .normal)
-        addButton.titleLabel?.font = .systemFont(ofSize: 20)
-        addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        
-        removeButton.setTitle("➖", for: .normal)
-        removeButton.titleLabel?.font = .systemFont(ofSize: 20)
-        removeButton.addTarget(self, action: #selector(removeButtonTapped), for: .touchUpInside)
-        
-        let buttonStackView = UIStackView(arrangedSubviews: [addButton, removeButton])
-        buttonStackView.axis = .horizontal
-        buttonStackView.spacing = 12
-        buttonStackView.distribution = .fillEqually
-        
-        addSubview(titleLabel)
-        addSubview(buttonStackView)
-        backgroundColor = .systemGray6
-        layer.cornerRadius = 8
-        
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            
-            buttonStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            buttonStackView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            buttonStackView.widthAnchor.constraint(equalToConstant: 80),
-            buttonStackView.heightAnchor.constraint(equalToConstant: 32),
-            
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: buttonStackView.leadingAnchor, constant: -16)
-        ])
-        
-        addButton.layer.cornerRadius = 6
-        removeButton.layer.cornerRadius = 6
-        addButton.backgroundColor = .systemGreen.withAlphaComponent(0.2)
-        removeButton.backgroundColor = .systemRed.withAlphaComponent(0.2)
-    }
-    
-    @objc private func addButtonTapped() {
-        print("🟢 追加ボタンタップ: \(sectionId)")
-        delegate?.addItemToSection(sectionId: sectionId)
-    }
-    
-    @objc private func removeButtonTapped() {
-        print("🔴 削除ボタンタップ: \(sectionId)")
-        delegate?.removeItemFromSection(sectionId: sectionId)
-    }
-    
+class SectionHeader: SectionHeaderBase {
     func configure(with title: String, sectionId: String, delegate: SectionHeaderDelegate) {
         titleLabel.text = title
         self.sectionId = sectionId
@@ -312,6 +194,7 @@ class SectionHeader: UICollectionReusableView {
 struct CollectionViewWrapperRepresentable: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UINavigationController {
         let wrapper = CollectionViewWrapper()
+        wrapper.title = "V1 - 通常"
         return UINavigationController(rootViewController: wrapper)
     }
     

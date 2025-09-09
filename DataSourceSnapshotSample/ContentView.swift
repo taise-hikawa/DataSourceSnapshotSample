@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedVersion = 0
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -22,8 +24,20 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                 
-                CollectionViewWrapperRepresentable()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Picker("バージョン", selection: $selectedVersion) {
+                    Text("V1 (通常)").tag(0)
+                    Text("V2 (items付き)").tag(1)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.horizontal)
+                
+                if selectedVersion == 0 {
+                    CollectionViewWrapperRepresentable()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    CollectionViewWrapperV2Representable()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             .navigationTitle("DataSource Sample")
             .navigationBarTitleDisplayMode(.inline)
