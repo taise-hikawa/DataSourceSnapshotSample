@@ -76,6 +76,18 @@ struct SectionV4: Hashable {
 
 **`NSDiffableDataSource`はhash値だけでなく、等価性演算子（`==`）も差分検知に使用している**
 
+## 参考文献
+
+1. **[Can UITableViewDiffableDataSource detect an item changed?](https://stackoverflow.com/questions/61073340/can-uitableviewdiffabledatasource-detect-an-item-changed)**
+   > "Diffable data source uses item hash to identify item. For the same item that exists in both old and new snapshots, diffable data source checks if the item changes by doing an '==' operation with its old and new values."
+   
+   この記事では、DiffableDataSourceが項目の識別にhashを使用し、値の変更検知に`==`演算子を使用することが明確に説明されており、本実験の結論を裏付けています。
+
+2. **[Why do diffable datasources treat class and struct types differently?](https://stackoverflow.com/questions/67324651/why-do-diffable-datasources-treat-class-and-struct-types-differently)**
+   > "After some investigation I found that `UITableViewDiffableDataSource` uses `NSOrderedSet` under the hood... NSOrderedSet then relies on the hash and isEqual: Objective-C methods instead of Hashable"
+   
+   NSDiffableDataSourceが内部的にNSOrderedSetを使用しており、Objective-Cの`isEqual:`メソッド（Swiftの`==`演算子に対応）に依存することが説明されています。これは等価性演算子が差分検知に影響する技術的な裏付けとなります。
+
 ## 使い方
 
 アプリを起動すると、上部のセグメンテッドコントロールでV1〜V4を切り替えることができます。各バージョンで「+」ボタンを押してアイテムを追加し、アニメーションの違いを確認してください。
