@@ -1,0 +1,3 @@
+# DataSourceSnapshotSample
+
+UICollectionViewDiffableDataSourceを使った殴り書き。描画の挙動を確認するためだけに作ったrepo
